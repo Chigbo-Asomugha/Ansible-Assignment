@@ -1,0 +1,107 @@
+---
+- name: Deploy application on Apache/httpd
+  hosts: all
+  become: yes
+  vars:
+    apache_service_name_centos: "httpd"
+    apache_service_name_ubuntu: "apache2"
+    apache_document_root: "/var/www/html"
+    github_repo_url: "https://github.com/Chigbo-Asomugha/AltSchool-Assignment-1.git"
+
+  tasks:
+    - name: Update package (Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Update packages (Ubuntu)
+      apt:
+        upgrade: yes
+        autoremove: yes
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Update package (CentOS)
+      yum:
+        update_cache: yes
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Update packages (CentOS)
+      yum:
+        name: "*"
+        state: present
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Install Git (Ubuntu)
+      apt:
+        name: git
+        state: present
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Install Git (CentOS)
+      yum:
+        name: git
+        state: present
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Install Apache2 (Ubuntu)
+      apt:
+        name: apache2
+        state: present
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Install Apache2 (CentOS)
+      yum:
+        name: httpd
+        state: present
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Clone GitHub repository
+      git:
+        repo: "https://github.com/Chigbo-Asomugha/AltSchool-Assignment-1.git"
+        dest: "/home/vagrant/app"
+      become: yes
+
+    - name: Copy application to Apache document root (Ubuntu)
+      copy:
+        src: "/home/vagrant/app/"
+        dest: "/var/www/html"
+        remote_src: yes
+        force: yes
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Copy application to Apache document root (CentOS)
+      copy:
+        src: "/home/vagrant/app/"
+        dest: "/var/www/html"
+        remote_src: yes
+        force: yes
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Ensure correct ownership and permissions (Ubuntu)
+      file:
+        path: "/var/www/html"
+        owner: vagrant
+        group: vagrant
+        mode: "0755"
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Ensure correct ownership and permissions (CentOS)
+      file:
+        path: "/var/www/html"
+        owner: vagrant
+        group: vagrant
+        mode: "0755"
+      when: ansible_os_distribution == 'CentOS'
+
+    - name: Restart Apache2 service (Ubuntu)
+      service:
+        name: apache2
+        state: restarted
+      when: ansible_os_distribution == 'Ubuntu'
+
+    - name: Restart httpd service (CentOS)
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_os_distribution == 'CentOS'
+
